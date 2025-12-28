@@ -18,7 +18,6 @@ with st.sidebar:
         api_key = st.secrets["GEMINI_API_KEY"]
         st.success("✅ 已自动加载 API Key")
     else:
-        # 如果没配置 Secrets，才显示输入框
         api_key = st.text_input("请输入 Google Gemini API Key", type="password")
 
     st.markdown("---")
@@ -28,7 +27,7 @@ with st.sidebar:
     st.markdown("2. 生成3个爆款选题")
     st.markdown("3. 生成口播逐字稿")
 
-# --- 3. 核心逻辑：System Prompt (Sissy灵魂) ---
+# --- 3. 核心逻辑：System Prompt ---
 SYSTEM_PROMPT = """
 **Role**: 你是由“实见”品牌打造的【Sissy IP·女性成长爆款策划专家】。
 你的核心任务是辅助主理人 Sissy 输出“真诚流、高认知、肉身解题”的短视频内容。
@@ -69,10 +68,10 @@ if not api_key:
 try:
     genai.configure(api_key=api_key)
     
-    # 🌟 关键修改：直接使用检测到的 2.0 模型！
-    # Gemini 2.0 支持 system_instruction，所以代码结构最简洁
+    # 🌟 回归最强免费模型：gemini-1.5-flash
+    # 因为我们刚才更新了 requirements.txt，现在它一定能用了！
     model = genai.GenerativeModel(
-        model_name="gemini-2.0-flash", 
+        model_name="gemini-1.5-flash", 
         system_instruction=SYSTEM_PROMPT
     )
 except Exception as e:
@@ -102,7 +101,8 @@ if st.button("✨ 第一步：生成爆款选题", type="primary"):
                 st.session_state.topics_text = response.text
                 st.success("选题已生成！请在下方查看。")
             except Exception as e:
-                st.error(f"生成失败，请检查网络或API Key。\n错误信息: {e}")
+                # 如果 1.5-flash 还是不行（极小概率），这里会捕获错误
+                st.error(f"生成失败。\n错误详情: {e}")
 
 # --- 模块二：展示选题 & 生成逐字稿 ---
 if st.session_state.topics_text:
