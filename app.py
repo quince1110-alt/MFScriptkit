@@ -22,7 +22,7 @@ with st.sidebar:
     st.info("💡 **工具说明**：\n本工具基于【实见·Sissy】IP逻辑，专为女性成长赛道设计。")
 
 # --- 3. 核心逻辑：Sissy 的大脑 ---
-# 注意：我们将人设定义为普通字符串，后面手动拼接，这样兼容性最强
+# Gemini 2.0 系列支持 system_instruction，所以我们可以把人设写回去！
 SYSTEM_PROMPT = """
 你是由“实见”品牌打造的【Sissy IP·女性成长爆款策划专家】。
 **IP Persona**: 真诚、通透、温柔的一刀、肉身解题。
@@ -43,8 +43,12 @@ if not api_key:
 try:
     genai.configure(api_key=api_key)
     
-    # 🌟 关键修改：使用你列表里存在的确切名字
-    model = genai.GenerativeModel("gemini-pro-latest") 
+    # 🌟 关键修改：使用你在列表里有的“实验版”模型
+    # 实验版 (exp) 通常是完全免费的！
+    model = genai.GenerativeModel(
+        model_name="gemini-2.0-flash-exp", 
+        system_instruction=SYSTEM_PROMPT
+    )
     
 except Exception as e:
     st.error(f"API Key 配置有误: {e}")
@@ -66,9 +70,9 @@ if st.button("✨ 第一步：生成爆款选题", type="primary"):
     else:
         with st.spinner("Sissy 正在洞察人性..."):
             try:
-                # 手动拼接提示词，确保旧模型也能读懂人设
-                full_prompt = f"{SYSTEM_PROMPT}\n\n【用户资料】：\n{user_input}\n\n请生成3个选题。"
-                response = model.generate_content(full_prompt)
+                # 2.0 模型可以直接读取 system_instruction，所以这里直接发内容就行
+                prompt = f"【用户资料】：\n{user_input}\n\n请生成3个选题。"
+                response = model.generate_content(prompt)
                 st.session_state.topics_text = response.text
                 st.success("选题已生成！")
             except Exception as e:
@@ -91,7 +95,7 @@ if st.session_state.topics_text:
         else:
             with st.spinner("正在撰写逐字稿..."):
                 try:
-                    script_prompt = f"{SYSTEM_PROMPT}\n\n用户选择了标题：【{selected_topic}】。\n请严格按照【实见·5步高转化结构】撰写逐字稿。"
+                    script_prompt = f"用户选择了标题：【{selected_topic}】。\n请严格按照【实见·5步高转化结构】撰写逐字稿。"
                     script_response = model.generate_content(script_prompt)
                     st.markdown("### 🎬 最终逐字稿")
                     st.markdown(script_response.text)
