@@ -71,7 +71,7 @@ try:
     genai.configure(api_key=api_key)
     # 使用 flash 模型，速度快且免费额度高
     model = genai.GenerativeModel(
-        model_name="gemini-pro",
+        model_name="gemini-1.5-flash",  # 这里必须是这个名字
         system_instruction=SYSTEM_PROMPT
     )
 except Exception as e:
